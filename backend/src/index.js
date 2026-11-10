@@ -55,8 +55,11 @@ app.listen(PORT, () => {
   connectDB();
   console.log("Server is running on port", PORT);
 
-  if(process.env.NODE_ENV === "production") {
+  console.log("NODE_ENV:", process.env.NODE_ENV);
+
+  if (process.env.NODE_ENV === "production") {
     job.start();
+    console.log("Cron job started successfully!");
   }
 });
 
