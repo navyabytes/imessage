@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "dev": "nodemon src/index.js"
+    "build": "node -e \"require('fs').cpSync('src', 'dist', { recursive: true })\""
   },
   "keywords": [],
   "author": "",
