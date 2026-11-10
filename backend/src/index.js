@@ -1,7 +1,7 @@
 //const express = require('express');
 import job from "./lib/cron.js";
 import express from "express";
-import clerkWebhook from "./webhook/clerk.webhook.js";
+import clerkWebhook from "./webhooks/clerk.webhook.js";
 import dotenv from "dotenv";
 import { connectDB } from "./lib/db.js";
 import cors from "cors";
