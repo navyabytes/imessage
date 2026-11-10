@@ -1,6 +1,7 @@
 //const express = require('express');
 import job from "./lib/cron.js";
 import express from "express";
+import clerkWebhook from "./webhook/clerk.webhook.js";
 import dotenv from "dotenv";
 import { connectDB } from "./lib/db.js";
 import cors from "cors";
@@ -17,7 +18,7 @@ const app = express();
 
 app.use(bodyParser.json());
 
-
+app.use("/api/webhooks/clerk", clerkWebhook);
 
 console.log("DB URL:", process.env.DB_URL);
 const PORT = process.env.PORT ;
