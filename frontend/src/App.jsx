@@ -1,7 +1,7 @@
 
 import './App.css'
 import { Show, SignInButton, SignUpButton, UserButton } from '@clerk/react'
-
+//by default its redirect
 function App() {
   return (
     <>
@@ -11,7 +11,7 @@ function App() {
         <header>
           <Show when="signed-out">
             <SignInButton mode = "modal"/>
-            //by default its redirect
+            
             <SignUpButton mode = "modal"/>
           </Show>
 
