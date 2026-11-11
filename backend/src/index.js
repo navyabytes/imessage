@@ -20,7 +20,7 @@ app.use(bodyParser.json());
 
 app.use("/api/webhooks/clerk", clerkWebhook);
 
-console.log("DB URL:", process.env.DB_URL);
+console.log("DB URL:", process.env.MONGO_URI);
 const PORT = process.env.PORT ;
 const FRONEND_URL = process.env.FRONTEND_URL;
 
