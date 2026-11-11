@@ -1,48 +1,55 @@
-//const express = require('express');
+
 import job from "./lib/cron.js";
 import express from "express";
 import clerkWebhook from "./webhooks/clerk.webhook.js";
 import dotenv from "dotenv";
 import { connectDB } from "./lib/db.js";
 import cors from "cors";
-// import authRoutes from "./routes/auth.js";
-// import messageRoutes from "./routes/messages.js";
-// import User from "./models/User.js";
-import bodyParser from "body-parser";
 import fs from "fs";
 import path from "path";
 import { clerkMiddleware } from "@clerk/express";
 
 dotenv.config();
+
 const app = express();
 
-app.use(bodyParser.json());
-
-app.use("/api/webhooks/clerk", clerkWebhook);
-
-console.log("DB URL:", process.env.MONGO_URI);
-const PORT = process.env.PORT ;
-const FRONEND_URL = process.env.FRONTEND_URL;
-
+const PORT = process.env.PORT || 3000;
 const publicDir = path.join(process.cwd(), "public");
 
-//cors error - you tried to get data from another site but the browser didn't let you
-//fix - you should tell the backend to allow requests from your frontend
-app.use(express.json()); 
-app.use(cors({ origin: process.env.FRONTEND_URL, credentials: true })); 
-//app.use(cors()); - any website to call your api we want only frontend to call our api, so we will use the origin option to specify the frontend url
-//cors - cors origin resource sharing, which allows the server to specify which domains are allowed to access its resources. In this case, it is allowing requests from any origin.
+// Clerk webhook - raw body is required for signature verification
+app.use(
+  "/api/webhooks/clerk",
+  express.raw({ type: "application/json" }),
+  clerkWebhook
+);
+
+console.log("DB URL:", process.env.MONGO_URI);
+
+// CORS configuration
+app.use(
+  cors({
+    origin: process.env.FRONTEND_URL,
+    credentials: true,
+  })
+);
+
+// Parse JSON for all other routes
+app.use(express.json());
+
+// Clerk middleware
 app.use(clerkMiddleware());
 
+// Health check
 app.get("/health", (req, res) => {
   res.status(200).json({ status: "ok" });
 });
 
-if(fs.existsSync(publicDir)) {
+// Serve frontend in production
+if (fs.existsSync(publicDir)) {
   app.use(express.static(publicDir));
 
-  app.get("/{*any}", (req, res,next) => {
-    res.sendFile(path.join(publicDir, "index.html"),(err) => {
+  app.get("/{*any}", (req, res, next) => {
+    res.sendFile(path.join(publicDir, "index.html"), (err) => {
       if (err) {
         next(err);
       }
@@ -50,12 +57,11 @@ if(fs.existsSync(publicDir)) {
   });
 }
 
-// app.use("/api/auth", authRoutes);
-// app.use("/api/messages", messageRoutes);
+// Start server
 app.listen(PORT, () => {
   connectDB();
-  console.log("Server is running on port", PORT);
 
+  console.log("Server is running on port", PORT);
   console.log("NODE_ENV:", process.env.NODE_ENV);
 
   if (process.env.NODE_ENV === "production") {
@@ -63,5 +69,3 @@ app.listen(PORT, () => {
     console.log("Cron job started successfully!");
   }
 });
-
-//Yes! Your code is functionally correct for serving the frontend from Express in the Docker setup. ❤️
