@@ -1,22 +1,33 @@
+
 import { getAuth } from "@clerk/express";
 import User from "../models/user.model.js";
 
 export async function protectRoute(req, res, next) {
     try {
-        const { userId } = getAuth(req); 
+        const { userId } = getAuth(req);
+
         if (!userId) {
-            res.status(401).json({ message: "Unauthorized" });
-            return;
+            return res.status(401).json({
+                message: "Unauthorized"
+            });
         }
+
         const user = await User.findOne({ clerkId: userId });
+
         if (!user) {
-            res.status(401).json({ message: "User profile not found" });
-            return;
+            return res.status(401).json({
+                message: "User profile not found"
+            });
         }
+
         req.user = user;
-        next(); 
+        next();
+
     } catch (error) {
         console.error("Error in protectRoute middleware:", error);
-        res.status(500).json({ message: "Internal server error" });
+
+        return res.status(500).json({
+            message: "Internal server error"
+        });
     }
 }

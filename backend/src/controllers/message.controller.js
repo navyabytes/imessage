@@ -1,7 +1,6 @@
-import { getUsersForSidebar, getConversationsForSidebar } from "../controllers/message.controller.js";   
 import User from "../models/user.model.js";
 import Message from "../models/message.model.js";
-
+import { hasImageKitConfig, uploadChatMedia } from "../lib/imagekit.js";
 export async function getUsersForSidebar(req, res) {
     try{
         const loggedInUserId = req.user.id;
@@ -18,35 +17,62 @@ export async function getConversationsForSidebar(req, res) {
     try{
         const loggedInUserId = req.user.id;
         // Implementation for fetching conversations for sidebar
+        
         const conversations = await Message.aggregate([
-            // 1. Keep only the messages I sent or received
-            { $match: { $or: [{ senderId: loggedInUserId }, { receiverId: loggedInUserId }] } },
-            // 2. Sort by createdAt in descending order
-            { $group: {
-                _id: {
-                    $cond: [
-                        { $eq: ["$senderId", loggedInUserId] },
-                        "$receiverId",  
-                        "$senderId"
+            // 1. Find messages sent or received by logged-in user
+            {
+                $match: {
+                    $or: [
+                        { senderId: loggedInUserId },
+                        { receiverId: loggedInUserId }
                     ]
-                },
+                }
             },
-            // 3. Get the latest message for each conversation
-            { $sort: { lastMessage: -1 } },
-            // 4. Look up each partner's user profile (comes back as an array)
-            { $lookup: {
-                from: "users",
-                localField: "_id",
-                foreignField: "_id",
-                as: "user"
-            }},
-            // 5. Pull that profile out of the array and make it the document
-            { $replaceRoot: { newRoot: { $first: "$user" } } },
-            // 6. Hide the private clerkId field from the result
-            { $project: { clerkId: 0 } }
 
+            // 2. Sort messages by latest first
+            {
+                $sort: { createdAt: -1 }
+            },
+
+            // 3. Group messages by conversation partner
+            {
+                $group: {
+                    _id: {
+                        $cond: [
+                            { $eq: ["$senderId", loggedInUserId] },
+                            "$receiverId",
+                            "$senderId"
+                        ]
+                    },
+                    lastMessage: { $first: "$$ROOT" }
+                }
+            },
+
+            // 4. Fetch conversation partner's profile
+            {
+                $lookup: {
+                    from: "users",
+                    localField: "_id",
+                    foreignField: "_id",
+                    as: "user"
+                }
+            },
+
+            // 5. Convert user array into object
+            {
+                $unwind: "$user"
+            },
+
+            // 6. Hide Clerk ID
+            {
+                $project: {
+                    "user.clerkId": 0
+                }
+            }
         ]);
+
         res.status(200).json(conversations);
+
     }
     catch(error){
         console.error("Error fetching conversations for sidebar:", error);
