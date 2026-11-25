@@ -2,6 +2,7 @@
 import job from "./lib/cron.js";
 import express from "express";
 import clerkWebhook from "./webhooks/clerk.webhook.js";
+import authRoutes from "./routes/auth.route.js";
 import dotenv from "dotenv";
 import { connectDB } from "./lib/db.js";
 import cors from "cors";
@@ -43,6 +44,8 @@ app.use(clerkMiddleware());
 app.get("/health", (req, res) => {
   res.status(200).json({ status: "ok" });
 });
+
+app.use("/api/auth", authRoutes);
 
 // Serve frontend in production
 if (fs.existsSync(publicDir)) {
