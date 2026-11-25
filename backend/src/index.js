@@ -23,7 +23,7 @@ app.use(
   clerkWebhook
 );
 
-console.log("DB URL:", process.env.MONGO_URI);
+console.log("MongoDB URI loaded:", !!process.env.MONGO_URI);
 
 // CORS configuration
 app.use(
@@ -57,15 +57,24 @@ if (fs.existsSync(publicDir)) {
   });
 }
 
-// Start server
-app.listen(PORT, () => {
-  connectDB();
+// Start server only after MongoDB connects
+async function startServer() {
+  try {
+    await connectDB();
 
-  console.log("Server is running on port", PORT);
-  console.log("NODE_ENV:", process.env.NODE_ENV);
+    app.listen(PORT, () => {
+      console.log("Server is running on port", PORT);
+      console.log("NODE_ENV:", process.env.NODE_ENV);
 
-  if (process.env.NODE_ENV === "production") {
-    job.start();
-    console.log("Cron job started successfully!");
+      if (process.env.NODE_ENV === "production") {
+        job.start();
+        console.log("Cron job started successfully!");
+      }
+    });
+  } catch (error) {
+    console.error("Server startup failed:", error);
+    process.exit(1);
   }
-});
+}
+
+startServer();
