@@ -3,26 +3,23 @@ import './App.css'
 import { Show, SignInButton, SignUpButton, UserButton } from '@clerk/react'
 
 import { Button } from '@heroui/react';
+import { ThemeProvider } from './context/ThemeContext';
+import { WallpaperProvider } from './context/WallpaperContext';
+import {Route, Routes} from "react-router";
+import AuthPage from './pages/AuthPage';
 
 //by default its redirect
 function App() {
   return (
     <>
-      <div>
-        <h1 className="text-4xl text-red-500 bg-blue-400" >My App</h1>
-        <Button>My Button</Button>
-        <header>
-          <Show when="signed-out">
-            <SignInButton mode = "modal"/>
-            
-            <SignUpButton mode = "modal"/>
-          </Show>
-
-          <Show when="signed-in">
-            <UserButton />
-          </Show>
-        </header>
-      </div>
+      <ThemeProvider>
+        <WallpaperProvider>
+          <Routes>
+            <Route path = "/" element = {<ChatPage />} />
+            <Route path = "/auth" element = {<AuthPage />} />
+          </Routes>
+        </WallpaperProvider>
+      </ThemeProvider>
     </>
   )
 }
